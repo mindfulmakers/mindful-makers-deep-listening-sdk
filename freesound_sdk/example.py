@@ -1,10 +1,28 @@
 """Example: Search and explore meditation sounds on Freesound."""
 
 import os
+import subprocess
+import tempfile
+from pathlib import Path
 
+import requests
 from dotenv import load_dotenv
 
 from freesound_sdk import FreesoundClient
+
+
+def download_preview(url: str, path: Path) -> None:
+    """Download a preview MP3 from Freesound."""
+    response = requests.get(url, stream=True)
+    response.raise_for_status()
+    with open(path, "wb") as f:
+        for chunk in response.iter_content(chunk_size=8192):
+            f.write(chunk)
+
+
+def play_audio(path: Path) -> None:
+    """Play an audio file using the system player."""
+    subprocess.run(["afplay", str(path)], check=True)
 
 
 def main():
@@ -74,33 +92,31 @@ def main():
         print(f"        Duration: {sound['duration']:.1f}s")
         print()
 
-    # Get detailed info about a sound
+    # Download and play sounds
     if sounds:
-        first_sound = sounds[0]
-        print(f"Detailed info for sound {first_sound['id']}:")
-        print("-" * 40)
-        details = client.get_sound(first_sound["id"])
-        print(f"  Name: {details['name']}")
-        print(f"  Duration: {details['duration']:.1f} seconds")
-        print(f"  License: {details['license']}")
-        print(f"  Downloads: {details['downloads']}")
-        print(f"  Preview URL: {details['preview_url']}")
-        print()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmppath = Path(tmpdir)
 
-        # Show attribution
-        print("Attribution (include when using this sound):")
-        print("-" * 40)
-        attribution = client.get_attribution(first_sound["id"])
-        print(f"  {attribution}")
-        print()
+            for i, sound in enumerate(sounds[:2]):  # Play first 2 sounds
+                print(f"Downloading and playing sound {i + 1}: {sound['name']}")
+                print("-" * 40)
+                print(f"  ID: {sound['id']}")
+                print(f"  Duration: {sound['duration']:.1f} seconds")
+
+                if sound["preview_url"]:
+                    mp3_path = tmppath / f"sound_{sound['id']}.mp3"
+                    download_preview(sound["preview_url"], mp3_path)
+                    print("  Playing preview...")
+                    play_audio(mp3_path)
+                    print()
+
+                # Show attribution
+                attribution = client.get_attribution(sound["id"])
+                print(f"  Attribution: {attribution}")
+                print()
 
     print("=" * 60)
     print("Demo complete!")
-    print()
-    print("To download sounds, use:")
-    print('  client.download_sound(sound_id, "meditation_bell.wav")')
-    print()
-    print("Remember to include attribution for CC-licensed sounds!")
     print("=" * 60)
 
 
