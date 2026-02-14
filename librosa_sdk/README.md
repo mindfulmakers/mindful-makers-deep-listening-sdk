@@ -103,3 +103,13 @@ Run the example to see all features in action:
 ```bash
 uv run python librosa_sdk/example.py
 ```
+
+
+
+
+
+Demo sound attribution:
+
+Soothing Atmospheric Sound for Media by Matio888 -- https://freesound.org/s/797914/ -- License: Attribution 4.0
+
+Demo Song by deleted_user_4397472 -- https://freesound.org/s/277457/ -- License: Creative Commons 0

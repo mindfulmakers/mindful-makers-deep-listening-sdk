@@ -1,36 +1,13 @@
 """Example: Analyze audio for meditation suitability."""
 
+from pathlib import Path
+
 import numpy as np
 
 from librosa_sdk import MindfulAnalyzer
 
-
-def generate_sample_audio(duration: float = 10.0, sr: int = 22050) -> np.ndarray:
-    """Generate a simple ambient-style audio sample for demonstration.
-
-    Creates a warm, low-frequency drone with subtle modulation.
-    """
-    t = np.linspace(0, duration, int(sr * duration))
-
-    # Base drone at 110 Hz (warm, grounding frequency)
-    drone = 0.3 * np.sin(2 * np.pi * 110 * t)
-
-    # Add subtle harmonics
-    drone += 0.15 * np.sin(2 * np.pi * 220 * t)
-    drone += 0.08 * np.sin(2 * np.pi * 330 * t)
-
-    # Slow amplitude modulation for breathing quality
-    modulation = 0.7 + 0.3 * np.sin(2 * np.pi * 0.1 * t)
-    drone *= modulation
-
-    # Fade in/out
-    fade_samples = int(sr * 0.5)
-    fade_in = np.linspace(0, 1, fade_samples)
-    fade_out = np.linspace(1, 0, fade_samples)
-    drone[:fade_samples] *= fade_in
-    drone[-fade_samples:] *= fade_out
-
-    return drone.astype(np.float32)
+# Path to the sample meditation audio
+SAMPLE_MP3 = Path(__file__).parent / "bad-meditation-music.mp3"
 
 
 def main():
@@ -39,17 +16,14 @@ def main():
     print("=" * 60)
     print()
 
-    # Generate sample audio
-    print("Generating sample meditation audio...")
-    sr = 22050
-    audio = generate_sample_audio(duration=10.0, sr=sr)
-    print("  Duration: 10 seconds")
-    print(f"  Sample rate: {sr} Hz")
-    print()
+    print("Loading sample meditation audio...")
+    print(f"  File: {SAMPLE_MP3.name}")
 
     # Create analyzer and load audio
-    analyzer = MindfulAnalyzer()
-    analyzer.load_from_array(audio, sr)
+    analyzer = MindfulAnalyzer(str(SAMPLE_MP3))
+    print(f"  Duration: {analyzer.get_duration():.1f} seconds")
+    print(f"  Sample rate: {analyzer.sr} Hz")
+    print()
 
     # Analyze tempo
     print("Tempo Analysis:")
